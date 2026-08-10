@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 /**
  * Controlador de carga inalámbrica.
@@ -222,5 +223,5 @@ class ChargeController(private val ctx: Context, private val prefs: Prefs) {
         Log.d(TAG, "Modo → $mode ($reason)")
     }
 
-    private fun Float.round(): Int = kotlin.math.roundToInt()
+    private fun Float.round(): Int = roundToInt()
 }
