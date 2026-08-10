@@ -10,18 +10,17 @@ class PowerConnectionReceiver : BroadcastReceiver() {
         val prefs = Prefs(context)
         when (intent.action) {
             Intent.ACTION_POWER_CONNECTED -> {
-                val bs = BatteryReader.read(context)
-                if (bs.wireless && prefs.autoEnable) {
-                    prefs.autoActive = true
-                    ServiceUtils.startService(context)
-                } else if (prefs.masterEnabled) {
+                // No exigimos bs.wireless aquí: en Samsung el battery sticky puede tardar
+                // unos segundos en reportar wireless. El servicio se queda en espera
+                // hasta detectar la carga inalámbrica.
+                if (prefs.autoEnable || prefs.masterEnabled) {
                     ServiceUtils.startService(context)
                 }
             }
 
             Intent.ACTION_POWER_DISCONNECTED -> {
                 if (prefs.autoActive) prefs.autoActive = false
-                if (!prefs.masterEnabled) {
+                if (!prefs.autoEnable && !prefs.masterEnabled) {
                     ServiceUtils.stopService(context)
                 }
             }

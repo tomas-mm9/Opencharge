@@ -13,16 +13,10 @@ class BootReceiver : BroadcastReceiver() {
             return
         }
         val prefs = Prefs(context)
-        if (prefs.masterEnabled) {
+        if (prefs.masterEnabled || prefs.autoEnable) {
+            // El servicio se queda en espera hasta detectar la carga inalámbrica,
+            // así no dependemos del sticky de batería justo tras el boot.
             ServiceUtils.startService(context)
-            return
-        }
-        if (prefs.autoEnable) {
-            val bs = BatteryReader.read(context)
-            if (bs.wireless) {
-                prefs.autoActive = true
-                ServiceUtils.startService(context)
-            }
         }
     }
 }

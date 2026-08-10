@@ -24,6 +24,8 @@ class ChargeControllerService : Service() {
         private const val CHANNEL_ID = "opencharge_status"
         private const val NOTIF_ID = 1001
         private const val POLL_MS = 15_000L
+
+        @Volatile var isRunning: Boolean = false
     }
 
     private lateinit var prefs: Prefs
@@ -63,6 +65,7 @@ class ChargeControllerService : Service() {
             return START_NOT_STICKY
         }
         startForegroundCompat()
+        isRunning = true
         running = true
         handler.removeCallbacks(tick)
         handler.post(tick)
@@ -70,6 +73,7 @@ class ChargeControllerService : Service() {
     }
 
     override fun onDestroy() {
+        isRunning = false
         running = false
         handler.removeCallbacks(tick)
         worker.shutdownNow()
@@ -109,7 +113,26 @@ class ChargeControllerService : Service() {
 
         val effective = manual || (auto && bs.wireless)
 
+        // Con auto activo pero sin carga inalámbrica aún, el servicio sigue en espera
+        // (no se apaga) para poder detectar la base cuando se coloque encima.
         if (!effective) {
+            if (manual || auto) {
+                StateHolder.armed = false
+                StateHolder.charging = bs.charging
+                StateHolder.wireless = bs.wireless
+                StateHolder.tempC = bs.tempC
+                StateHolder.level = bs.level
+                StateHolder.currentMa = currentNowMa()
+                StateHolder.source = sourceLabel(bs)
+                StateHolder.mode = "Esperando carga inalámbrica…"
+                StateHolder.avgWatts = 0f
+                StateHolder.permissionOk = WirelessChargeControl.hasWriteSecurePermission(this)
+                StateHolder.offAvailable = prefs.masterKey.isNotEmpty()
+                StateHolder.lastNote =
+                    if (bs.charging) "Cargando por cable: sin restricciones."
+                    else "Sin carga. Coloca el teléfono en la base inalámbrica."
+                return
+            }
             shutdown()
             return
         }

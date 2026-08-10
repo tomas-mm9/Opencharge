@@ -83,8 +83,7 @@ class MainActivity : AppCompatActivity() {
             } else {
                 prefs.masterEnabled = false
                 if (prefs.autoActive) prefs.autoActive = false
-                val bs = BatteryReader.read(this)
-                if (!(prefs.autoEnable && bs.wireless)) {
+                if (!prefs.autoEnable) {
                     ServiceUtils.stopService(this)
                 }
             }
@@ -93,11 +92,9 @@ class MainActivity : AppCompatActivity() {
         swAuto.setOnCheckedChangeListener { _, checked ->
             if (checked) {
                 prefs.autoEnable = true
-                val bs = BatteryReader.read(this)
-                if (bs.wireless) {
-                    prefs.autoActive = true
-                    ServiceUtils.startService(this)
-                }
+                // El servicio se queda en espera hasta detectar la base inalámbrica.
+                requestNotifPermissionIfNeeded()
+                ServiceUtils.startService(this)
             } else {
                 prefs.autoEnable = false
                 if (prefs.autoActive) prefs.autoActive = false
@@ -142,6 +139,9 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         swMaster.isChecked = prefs.masterEnabled
         swAuto.isChecked = prefs.autoEnable
+        if ((prefs.masterEnabled || prefs.autoEnable) && !ChargeControllerService.isRunning) {
+            ServiceUtils.startService(this)
+        }
         refreshStatus()
     }
 
