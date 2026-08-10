@@ -13,6 +13,8 @@ object StateHolder {
     @Volatile var charging: Boolean = false
     @Volatile var wireless: Boolean = false
     @Volatile var lastNote: String = ""
+    @Volatile var avgWatts: Float = 0f
+    @Volatile var offAvailable: Boolean = false
 
     fun tempDisplay(): String = if (tempC > 0) "${tempC.roundToInt()}°C" else "—"
 }

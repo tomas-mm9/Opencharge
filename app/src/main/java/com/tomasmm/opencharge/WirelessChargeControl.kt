@@ -10,55 +10,68 @@ object WirelessChargeControl {
     private const val TAG = "OpenCharge"
     const val KEY = "wireless_fast_charging"
 
-    enum class WriteResult { OK, NO_PERMISSION, MISMATCH, NOT_FOUND }
-
-    private data class TableRef(val name: String, val table: Int)
-
-    private val tables = listOf(
-        TableRef("system", 0),
-        TableRef("global", 1),
-        TableRef("secure", 2)
+    /** Claves candidatas para apagar/enciender la carga inalámbrica completa (toggle maestro). */
+    val MASTER_KEY_CANDIDATES = listOf(
+        "wireless_charging",
+        "wireless_charge",
+        "wireless_charging_enabled"
     )
 
-    private fun getInt(cr: ContentResolver, table: Int, def: Int): Int = when (table) {
-        1 -> Settings.Global.getInt(cr, KEY, def)
-        2 -> Settings.Secure.getInt(cr, KEY, def)
-        else -> Settings.System.getInt(cr, KEY, def)
+    enum class WriteResult { OK, NO_PERMISSION, MISMATCH, NOT_FOUND }
+
+    private val tables = listOf("system" to 0, "global" to 1, "secure" to 2)
+    private const val MISSING = -999
+
+    private fun getInt(cr: ContentResolver, table: Int, key: String, def: Int): Int = when (table) {
+        1 -> Settings.Global.getInt(cr, key, def)
+        2 -> Settings.Secure.getInt(cr, key, def)
+        else -> Settings.System.getInt(cr, key, def)
     }
 
-    private fun putInt(cr: ContentResolver, table: Int, value: Int): Boolean = when (table) {
-        1 -> Settings.Global.putInt(cr, KEY, value)
-        2 -> Settings.Secure.putInt(cr, KEY, value)
-        else -> Settings.System.putInt(cr, KEY, value)
+    private fun putInt(cr: ContentResolver, table: Int, key: String, value: Int): Boolean = when (table) {
+        1 -> Settings.Global.putInt(cr, key, value)
+        2 -> Settings.Secure.putInt(cr, key, value)
+        else -> Settings.System.putInt(cr, key, value)
     }
 
-    fun readAnyTable(context: Context, def: Int): Pair<Int, String?> {
-        for (t in tables) {
-            val v = getInt(context.contentResolver, t.table, -2)
-            if (v != -2) return v to t.name
+    /** Devuelve (valor, tabla) del primer sitio donde exista la clave, o (def, null). */
+    fun readAnyTable(context: Context, key: String, def: Int): Pair<Int, String?> {
+        for ((name, table) in tables) {
+            val v = getInt(context.contentResolver, table, key, MISSING)
+            if (v != MISSING) return v to name
         }
         return def to null
     }
 
-    fun writeKey(context: Context, value: Int): WriteResult {
+    /** Intenta escribir la clave en todas las tablas y verifica releendo. */
+    fun writeKey(context: Context, key: String, value: Int): WriteResult {
         val cr = context.contentResolver
-        for (t in tables) {
+        for ((name, table) in tables) {
             try {
-                val ok = putInt(cr, t.table, value)
+                val ok = putInt(cr, table, key, value)
                 if (!ok) continue
-                val back = getInt(cr, t.table, -2)
+                val back = getInt(cr, table, key, MISSING)
                 if (back == value) {
-                    Log.d(TAG, "Escrito ${KEY}=$value en tabla '${t.name}'")
+                    Log.d(TAG, "Escrito $key=$value en tabla '$name'")
                     return WriteResult.OK
                 }
             } catch (e: SecurityException) {
-                Log.d(TAG, "Sin permiso para escribir ${KEY} en '${t.name}'", e)
+                Log.d(TAG, "Sin permiso para escribir $key en '$name'", e)
             } catch (e: Exception) {
-                Log.d(TAG, "Error escribiendo ${KEY} en '${t.name}'", e)
+                Log.d(TAG, "Error escribiendo $key en '$name'", e)
             }
         }
-        val hasAny = readAnyTable(context, -2).second != null
+        val hasAny = readAnyTable(context, key, MISSING).second != null
         return if (hasAny) WriteResult.NO_PERMISSION else WriteResult.NOT_FOUND
+    }
+
+    /** Detecta si hay una clave maestra (toggle de carga inalámbrica completa) en el dispositivo. */
+    fun findMasterKey(context: Context): String? {
+        for (k in MASTER_KEY_CANDIDATES) {
+            val (v, table) = readAnyTable(context, k, MISSING)
+            if (table != null && (v == 0 || v == 1)) return k
+        }
+        return null
     }
 
     fun isSamsung(context: Context): Boolean {

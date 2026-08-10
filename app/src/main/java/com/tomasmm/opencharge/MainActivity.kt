@@ -32,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var txtLevel: TextView
     private lateinit var txtSource: TextView
     private lateinit var txtCurrent: TextView
+    private lateinit var txtAvg: TextView
     private lateinit var txtMode: TextView
     private lateinit var txtPerm: TextView
     private lateinit var txtNote: TextView
@@ -63,6 +64,7 @@ class MainActivity : AppCompatActivity() {
         txtLevel = findViewById(R.id.txt_level)
         txtSource = findViewById(R.id.txt_source)
         txtCurrent = findViewById(R.id.txt_current)
+        txtAvg = findViewById(R.id.txt_avg)
         txtMode = findViewById(R.id.txt_mode)
         txtPerm = findViewById(R.id.txt_perm)
         txtNote = findViewById(R.id.txt_note)
@@ -155,6 +157,11 @@ class MainActivity : AppCompatActivity() {
         txtCurrent.text = getString(
             R.string.status_current_value,
             if (current == Int.MIN_VALUE) "—" else "${current / 1000} mA"
+        )
+
+        txtAvg.text = getString(
+            R.string.status_avg_value,
+            if (StateHolder.avgWatts > 0) "%.1f W".format(StateHolder.avgWatts) else "—"
         )
 
         txtMode.text = getString(R.string.status_mode_value, StateHolder.mode)

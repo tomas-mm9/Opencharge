@@ -23,6 +23,7 @@
     <string name="status_level_value">Batería: %1$s</string>
     <string name="status_source_value">Fuente: %1$s</string>
     <string name="status_current_value">Corriente: %1$s</string>
+    <string name="status_avg_value">Potencia media: %1$s</string>
     <string name="status_mode_value">Modo: %1$s</string>
     <string name="status_perm_value">Permiso adb: %1$s</string>
     <string name="status_note_value">Estado: %1$s</string>
@@ -34,15 +35,22 @@
     <string name="battery_opt_already_off">La optimización de batería ya está desactivada para esta app.</string>
 
     <string name="settings_title">Ajustes</string>
+    <string name="settings_mode_title">Modo de control</string>
+    <string name="settings_mode_dynamic">Dinámico: potencia media continua (PWM)</string>
+    <string name="settings_mode_simple">Simple: histéresis rápido/lento</string>
+    <string name="settings_setpoint">Temp. objetivo (°C)</string>
+    <string name="settings_safety">Temp. de seguridad: forzar lento (°C)</string>
+    <string name="settings_period">Período del ciclo PWM (min)</string>
+    <string name="settings_restart">Reiniciar sesión de carga al cambiar de modo</string>
+    <string name="settings_restart_desc">Si el cambio de velocidad no aplica en caliente, la app apaga/enciende la carga inalámbrica (~1,5 s) para re-negociar. Requiere clave maestra detectada.</string>
     <string name="settings_high">Temp. alta para bajar a lento (°C)</string>
     <string name="settings_low">Temp. baja para volver a rápido (°C)</string>
     <string name="settings_cooldown">Espera antes de volver a rápido (min)</string>
-    <string name="settings_gentle">Modo suave (alternar rápido/lento)</string>
-    <string name="settings_fast">Minutos en rápido (modo suave)</string>
-    <string name="settings_slow">Minutos en lento (modo suave)</string>
+    <string name="settings_simple_section">Parámetros del modo Simple</string>
+    <string name="settings_dynamic_section">Parámetros del modo Dinámico</string>
     <string name="btn_save">Guardar</string>
     <string name="btn_reset">Restablecer</string>
-    <string name="settings_invalid">Valores no válidos. Revisa que alta &gt; baja y todo &gt; 0.</string>
+    <string name="settings_invalid">Valores no válidos. Revisa que seguridad &gt; objetivo, alta &gt; baja y todo &gt; 0.</string>
     <string name="settings_saved">Ajustes guardados</string>
     <string name="settings_reset">Valores restablecidos</string>
 
@@ -60,5 +68,12 @@
     <string name="diag_write_ok">Escritura correcta: %1$d</string>
     <string name="diag_write_noperm">Sin permiso: ejecuta el comando adb e inténtalo de nuevo.</string>
     <string name="diag_write_mismatch">El valor no se mantiene al releer. Es posible que Samsung exija cambiar el toggle sin estar cargando.</string>
-    <string name="diag_note">Nota: Samsung indica que el toggle de carga rápida inalámbrica no puede cambiarse mientras se está cargando; si es así, el cambio aplica al siguiente ciclo de carga. Esta pantalla sirve para verificarlo en tu One UI 8.5.</string>
+    <string name="diag_master">Toggle maestro de carga inalámbrica (apagado total)</string>
+    <string name="diag_master_none">No se ha detectado clave maestra (sin apagado completo).</string>
+    <string name="diag_master_value">%1$s = %2$d (tabla: %3$s)</string>
+    <string name="diag_master_test">Probar reinicio (apagar 1,5 s y encender)</string>
+    <string name="diag_master_result">Resultado del reinicio: %1$s</string>
+    <string name="diag_master_ok">Reinicio ejecutado correctamente</string>
+    <string name="diag_master_fail">Sin permiso o el valor no se mantiene.</string>
+    <string name="diag_note">Nota 1: Samsung indica que el toggle de carga rápida inalámbrica no puede cambiarse mientras se está cargando; el diagnóstico verifica si en tu One UI 8.5 sí aplica en caliente. Nota 2: el aviso \"Wireless charging stopped due to lack of space\" es del sistema Samsung (no de OpenCharge): suele aparecer por protección térmica al superar ~42 °C o por mal acoplamiento (funda gruesa o mala alineación). Evita llegar a 42 °C y recoloca el móvil.</string>
 </resources>

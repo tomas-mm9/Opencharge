@@ -62,6 +62,30 @@
             android:text="@string/diag_write0" />
 
         <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/diag_master"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/txt_master_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="#22000000"
+            android:fontFamily="monospace"
+            android:padding="8dp"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/btn_master_test"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/diag_master_test" />
+
+        <TextView
             android:id="@+id/txt_test_result"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

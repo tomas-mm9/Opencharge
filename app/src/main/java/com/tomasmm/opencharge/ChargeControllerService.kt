@@ -15,6 +15,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
+import java.util.concurrent.Executors
 
 class ChargeControllerService : Service() {
 
@@ -26,14 +27,20 @@ class ChargeControllerService : Service() {
     }
 
     private lateinit var prefs: Prefs
+    private lateinit var controller: ChargeController
     private val handler = Handler(Looper.getMainLooper())
+    private val worker = Executors.newSingleThreadExecutor()
     private var running = false
 
     private val tick = object : Runnable {
         override fun run() {
             if (!running) return
             try {
-                tickOnce()
+                worker.execute {
+                    tickOnce()
+                    updateNotification()
+                    sendStatusBroadcast()
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "Error en ciclo", e)
             }
@@ -44,6 +51,7 @@ class ChargeControllerService : Service() {
     override fun onCreate() {
         super.onCreate()
         prefs = Prefs(this)
+        controller = ChargeController(this, prefs)
         createChannel()
     }
 
@@ -64,6 +72,7 @@ class ChargeControllerService : Service() {
     override fun onDestroy() {
         running = false
         handler.removeCallbacks(tick)
+        worker.shutdownNow()
         super.onDestroy()
     }
 
@@ -81,11 +90,9 @@ class ChargeControllerService : Service() {
 
     private fun tickOnce() {
         val bs = BatteryReader.read(this)
-        val current = BatteryReader.currentNow(this)
         val manual = prefs.masterEnabled
         val auto = prefs.autoEnable
 
-        // Sesión autoactivada: se arma mientras haya carga inalámbrica
         if (bs.wireless && auto) {
             if (!prefs.autoActive) prefs.autoActive = true
         } else if (!bs.wireless && prefs.autoActive) {
@@ -99,73 +106,24 @@ class ChargeControllerService : Service() {
             return
         }
 
+        val result = controller.tick(bs.tempC, bs.wireless)
         StateHolder.armed = effective && bs.wireless
         StateHolder.charging = bs.charging
         StateHolder.wireless = bs.wireless
         StateHolder.tempC = bs.tempC
         StateHolder.level = bs.level
-        StateHolder.currentMa = if (current == Int.MIN_VALUE) 0 else current
+        StateHolder.currentMa = currentNowMa()
         StateHolder.source = sourceLabel(bs)
-
-        if (bs.wireless) {
-            applyControl(bs.tempC)
-        } else {
-            StateHolder.mode = "Espera (carga por cable)"
-            StateHolder.permissionOk = true
-            StateHolder.lastNote = "Carga por cable: sin restricciones. Solo se ajusta la inalámbrica."
-        }
-
-        updateNotification()
-        sendStatusBroadcast()
+        StateHolder.mode = result.mode
+        StateHolder.avgWatts = result.avgWatts
+        StateHolder.permissionOk = result.permissionOk
+        StateHolder.offAvailable = prefs.masterKey.isNotEmpty()
+        StateHolder.lastNote = result.note
     }
 
-    private fun applyControl(tempC: Float) {
-        val high = prefs.tempHigh
-        val low = prefs.tempLow
-        val now = System.currentTimeMillis()
-        val mode = prefs.speedMode
-        val reason = prefs.slowReason
-        val gentle = prefs.gentleMode
-        val elapsedMin = (now - prefs.lastModeChangeAt) / 60_000.0
-
-        if (mode == "FAST") {
-            if (tempC >= high) {
-                setMode("SLOW", "HIGH", now)
-            } else if (gentle && elapsedMin >= prefs.gentleFastMin) {
-                setMode("SLOW", "GENTLE", now)
-            }
-        } else {
-            val allowFast = when (reason) {
-                "HIGH" -> tempC <= low && elapsedMin >= prefs.cooldownMin
-                "GENTLE" -> tempC < high && elapsedMin >= prefs.gentleSlowMin
-                else -> tempC <= low && elapsedMin >= prefs.cooldownMin
-            }
-            if (allowFast) setMode("FAST", "", now)
-        }
-
-        val wantFast = prefs.speedMode == "FAST"
-        val res = WirelessChargeControl.writeKey(this, if (wantFast) 1 else 0)
-        StateHolder.permissionOk = res == WirelessChargeControl.WriteResult.OK
-        StateHolder.mode = if (wantFast) "Rápido (15W)" else "Lento (5W)"
-
-        StateHolder.lastNote = when (res) {
-            WirelessChargeControl.WriteResult.OK ->
-                if (wantFast) "Velocidad rápida activada (temperatura aceptable)."
-                else "Velocidad lenta activada para evitar sobrecalentamiento."
-            WirelessChargeControl.WriteResult.NO_PERMISSION ->
-                "Falta el permiso adb WRITE_SECURE_SETTINGS (ver Diagnóstico)."
-            WirelessChargeControl.WriteResult.MISMATCH ->
-                "El ajuste no se aplicó; comprueba Diagnóstico."
-            WirelessChargeControl.WriteResult.NOT_FOUND ->
-                "Clave wireless_fast_charging no disponible en este One UI."
-        }
-    }
-
-    private fun setMode(mode: String, reason: String, at: Long) {
-        prefs.speedMode = mode
-        prefs.slowReason = reason
-        prefs.lastModeChangeAt = at
-        Log.d(TAG, "Modo → $mode ($reason)")
+    private fun currentNowMa(): Int {
+        val c = BatteryReader.currentNow(this)
+        return if (c == Int.MIN_VALUE) 0 else c
     }
 
     private fun sourceLabel(bs: BatteryReader.BatteryState): String = when {
@@ -190,6 +148,7 @@ class ChargeControllerService : Service() {
         i.putExtra("source", StateHolder.source)
         i.putExtra("mode", StateHolder.mode)
         i.putExtra("current", StateHolder.currentMa)
+        i.putExtra("avg", StateHolder.avgWatts)
         i.putExtra("armed", StateHolder.armed)
         i.putExtra("permissionOk", StateHolder.permissionOk)
         i.putExtra("note", StateHolder.lastNote)
