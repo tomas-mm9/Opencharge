@@ -38,19 +38,17 @@
     <string name="settings_mode_title">Modo de control</string>
     <string name="settings_mode_dynamic">Dinámico: potencia media continua (PWM)</string>
     <string name="settings_mode_simple">Simple: histéresis rápido/lento</string>
-    <string name="settings_setpoint">Temp. objetivo (°C)</string>
-    <string name="settings_safety">Temp. de seguridad: forzar lento (°C)</string>
+    <string name="settings_dynamic_label">Modo Dinámico</string>
+    <string name="settings_thresholds_note">Los umbrales de temperatura (objetivo y seguridad) se calculan solos según la temperatura ambiente: objetivo = ambiente + 4 °C (37–40), seguridad = ambiente + 6 °C (42–45). Para el S25 se evita así rozar el corte térmico de Samsung (~42 °C) sin ralentizar de más.</string>
     <string name="settings_period">Período del ciclo PWM (min)</string>
     <string name="settings_restart">Reiniciar sesión de carga al cambiar de modo</string>
     <string name="settings_restart_desc">Si el cambio de velocidad no aplica en caliente, la app apaga/enciende la carga inalámbrica (~1,5 s) para re-negociar. Requiere clave maestra detectada.</string>
-    <string name="settings_high">Temp. alta para bajar a lento (°C)</string>
-    <string name="settings_low">Temp. baja para volver a rápido (°C)</string>
-    <string name="settings_cooldown">Espera antes de volver a rápido (min)</string>
     <string name="settings_simple_section">Parámetros del modo Simple</string>
-    <string name="settings_dynamic_section">Parámetros del modo Dinámico</string>
+    <string name="settings_simple_desc">Histéresis: usa los mismos umbrales adaptativos (baja a lento en la temperatura de seguridad; vuelve a rápido al bajar al objetivo).</string>
+    <string name="settings_cooldown">Espera antes de volver a rápido (min)</string>
     <string name="btn_save">Guardar</string>
     <string name="btn_reset">Restablecer</string>
-    <string name="settings_invalid">Valores no válidos. Revisa que seguridad &gt; objetivo, alta &gt; baja y todo &gt; 0.</string>
+    <string name="settings_invalid">Valores no válidos: el período y la espera deben ser ≥ 1.</string>
     <string name="settings_saved">Ajustes guardados</string>
     <string name="settings_reset">Valores restablecidos</string>
 
@@ -75,6 +73,9 @@
     <string name="diag_master_result">Resultado del reinicio: %1$s</string>
     <string name="diag_master_ok">Reinicio ejecutado correctamente</string>
     <string name="diag_master_fail">Sin permiso o el valor no se mantiene.</string>
+    <string name="diag_perm_check">Si la app dice \"FALTA\", verifica en el PC que el permiso se concedió de verdad:</string>
+    <string name="diag_cmd_check">adb shell dumpsys package com.tomasmm.opencharge | grep -i WRITE_SECURE</string>
+    <string name="diag_cmd_check_desc">Si aparece \"granted=true\", el permiso está concedido y la app lo mostrará OK al abrirla o al cargar. Si no aparece nada, ejecuta: adb shell pm grant com.tomasmm.opencharge android.permission.WRITE_SECURE_SETTINGS (con el móvil conectado y USB debugging activo, y la app instalada).</string>
     <string name="diag_note">Nota 1: Samsung indica que el toggle de carga rápida inalámbrica no puede cambiarse mientras se está cargando; el diagnóstico verifica si en tu One UI 8.5 sí aplica en caliente. Nota 2: el aviso \"Wireless charging stopped due to lack of space\" es del sistema Samsung (no de OpenCharge): suele aparecer por protección térmica al superar ~42 °C o por mal acoplamiento (funda gruesa o mala alineación). Evita llegar a 42 °C y recoloca el móvil.</string>
 
     <string name="diag_dumpsys_title">Monitorización con dumpsys (por adb)</string>

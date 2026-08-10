@@ -56,6 +56,20 @@ class Prefs(context: Context) {
         get() = sp.getInt("period_min", 3)
         set(value) = sp.edit().putInt("period_min", value).apply()
 
+    // ---- temperatura ambiente (para umbrales adaptativos) ----
+    var idleTempTenths: Int
+        get() = sp.getInt("idle_temp_tenths", 0)
+        set(value) = sp.edit().putInt("idle_temp_tenths", value).apply()
+
+    var idleAt: Long
+        get() = sp.getLong("idle_at", 0)
+        set(value) = sp.edit().putLong("idle_at", value).apply()
+
+    /** 0 = automático; >0 = temperatura ambiente fijada manualmente (°C). */
+    var ambientOverride: Int
+        get() = sp.getInt("ambient_override", 0)
+        set(value) = sp.edit().putInt("ambient_override", value).apply()
+
     /** Si en tu One UI el cambio de velocidad no aplica en caliente, actívalo para
      *  reiniciar la sesión de carga (apagar/enciender la carga) al cambiar de modo. */
     var applyNeedsRestart: Boolean

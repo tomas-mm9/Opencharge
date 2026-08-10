@@ -11,11 +11,11 @@ Probada pensando en un **Galaxy S25 / One UI 8.5 (Android 16)** con un cargador 
 - **Toggle 1 — Gestión dinámica de carga:** arma/desarma el control.
 - **Toggle 2 — Autoactivar con carga inalámbrica:** al poner el móvil en el cargador inalámbrico, la app se activa sola y gestiona la carga; al quitarlo, se desactiva sola. *Pon el móvil en la mesita de noche y olvídate.*
 - Mientras carga por inducción:
-  - Si la temperatura sube por encima del umbral (por defecto **40 °C**), baja la carga a **lenta (~5 W)**.
-  - Cuando baja a la temperatura segura (por defecto **36 °C**) durante un tiempo de espera (5 min), vuelve a **rápida (~15 W)**.
-  - **Modo suave** opcional: alterna períodos rápido/lento para cargar "poco a poco" sin picos de calor.
+  - **Modo Dinámico (PWM)** *(por defecto)*: controlador PI que mantiene la batería en una **temperatura objetivo adaptativa** y produce una **potencia media continua** entre 0 y 15 W, repartida en ciclos de rápido (15 W) / lento (5 W) / apagado (si hay clave maestra).
+  - **Modo Simple (histéresis)**: baja a lento al alcanzar la temperatura de seguridad y vuelve a rápido al bajar al objetivo, con espera configurable.
+- **Umbrales adaptativos por temperatura ambiente:** objetivo = ambiente + 4 °C (cap 37–40 °C), seguridad = ambiente + 6 °C (cap 42–45 °C). La app estima el ambiente en reposo (batería ≈ ambiente + 2 °C) y ajusta los umbrales solos según la estación. Para el S25 se evita rozar el corte térmico de Samsung (~42 °C) sin ralentizar de más.
 - Carga por cable: la app solo muestra el estado, no hace nada.
-- Notificación persistente con temperatura, porcentaje, corriente y modo.
+- Notificación persistente con temperatura, porcentaje, corriente, potencia media y modo.
 
 ## Cómo funciona técnicamente
 
@@ -62,17 +62,18 @@ La app detecta carga inalámbrica vía `BatteryManager` (`BATTERY_PLUGGED_WIRELE
 
 | Parámetro | Defecto | Qué hace |
 |---|---|---|
-| Temp. alta | 40 °C | Por encima, baja a carga lenta |
-| Temp. baja | 36 °C | Por debajo, vuelve a carga rápida |
-| Espera | 5 min | Tiempo a baja temperatura antes de volver a rápido |
-| Modo suave | off | Alterna rápido/lento en ciclos |
-| Minutos rápido / lento | 20 / 10 | Ciclos del modo suave |
+| Modo | Dinámico (PWM) | Dinámico: potencia media continua. Simple: histéresis |
+| Período PWM | 3 min | Duración del ciclo de reparto rápido/lento/apagado |
+| Reiniciar sesión | on | Apaga/enciende ~1,5 s al cambiar de modo (si hay clave maestra) |
+| Espera | 5 min | Tiempo a baja temperatura antes de volver a rápido (Simple) |
+
+Los **umbrales de temperatura no se configuran manualmente**: se calculan solos según la temperatura ambiente (objetivo = ambiente + 4 °C, cap 37–40; seguridad = ambiente + 6 °C, cap 42–45) para que el S25 no roze el corte térmico de Samsung (~42 °C) ni ralentice de más en verano.
 
 ## Notas y advertencias
 
 - Samsung documenta que el toggle de carga rápida no puede cambiarse "mientras se carga"; en algunos firmwares el cambio aplica al siguiente ciclo de carga. La pantalla de **Diagnóstico** permite probarlo en tu dispositivo. Si el cambio no aplica en caliente, actívalo desde el toggle de la app *antes* de poner el móvil en el cargador.
 - En One UI 8.5 la clave puede variar; si `wireless_fast_charging` no aparece, la app lo indica en Diagnóstico (la clave se intenta escribir en `Settings.System`, `Settings.Global` y `Settings.Secure`).
-- El control es binario (rápido/lento). No existe API para fijar un wattaje intermedio; el "aumento gradual" se aproxima con histéresis y modo suave.
+- El control es binario (rápido/lento) en el instante; los **puntos intermedios son potencia media** conseguida con PWM (rápido/lento/apagado) dentro del período configurado.
 - Detener por completo la carga inalámbrica no es posible sin root; al 100 % la detiene el propio sistema.
 
 ## Desarrollo

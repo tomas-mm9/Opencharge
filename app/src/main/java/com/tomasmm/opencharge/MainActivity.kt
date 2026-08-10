@@ -172,7 +172,7 @@ class MainActivity : AppCompatActivity() {
 
         txtMode.text = getString(R.string.status_mode_value, StateHolder.mode)
 
-        val permOk = StateHolder.permissionOk
+        val permOk = WirelessChargeControl.hasWriteSecurePermission(this)
         val permText = if (permOk) getString(R.string.perm_ok) else getString(R.string.perm_missing)
         txtPerm.text = getString(R.string.status_perm_value, permText)
 

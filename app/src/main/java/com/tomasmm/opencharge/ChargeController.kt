@@ -56,20 +56,28 @@ class ChargeController(private val ctx: Context, private val prefs: Prefs) {
         }
         val offAvailable = prefs.masterKey.isNotEmpty()
 
-        return if (prefs.controllerMode == "SIMPLE") simpleTick(tempC, offAvailable)
-        else dynamicTick(tempC, offAvailable)
+        val setpointEff = AmbientEstimator.setpointFor(prefs)
+        val safetyEff = AmbientEstimator.safetyFor(prefs)
+
+        return if (prefs.controllerMode == "SIMPLE") simpleTick(tempC, offAvailable, setpointEff, safetyEff)
+        else dynamicTick(tempC, offAvailable, setpointEff, safetyEff)
     }
 
     // ------------------------------------------------------------------ SIMPLE
-    private fun simpleTick(tempC: Float, offAvailable: Boolean): Result {
+    private fun simpleTick(
+        tempC: Float,
+        offAvailable: Boolean,
+        setpointEff: Int,
+        safetyEff: Int
+    ): Result {
         val now = System.currentTimeMillis()
         val mode = prefs.speedMode
         val elapsedMin = (now - prefs.lastModeChangeAt) / 60_000.0
 
         if (mode == "FAST") {
-            if (tempC >= prefs.tempHigh) setMode("SLOW", "HIGH", now)
+            if (tempC >= safetyEff) setMode("SLOW", "HIGH", now)
         } else {
-            if (tempC <= prefs.tempLow && elapsedMin >= prefs.cooldownMin) setMode("FAST", "", now)
+            if (tempC <= setpointEff && elapsedMin >= prefs.cooldownMin) setMode("FAST", "", now)
         }
 
         val fast = prefs.speedMode == "FAST"
@@ -79,7 +87,8 @@ class ChargeController(private val ctx: Context, private val prefs: Prefs) {
         val modeLabel = if (fast) "Rápido (15W)" else "Lento (5W)"
         val note = when (res) {
             WirelessChargeControl.WriteResult.OK ->
-                if (fast) "Rápido: temperatura aceptable." else "Lento: evitando sobrecalentamiento."
+                if (fast) "Rápido: ${tempC.round()}°C aceptable (objetivo $setpointEff)."
+                else "Lento: ${tempC.round()}°C ≥ ${safetyEff}°C, evitando sobrecalentamiento."
             WirelessChargeControl.WriteResult.NO_PERMISSION ->
                 "Falta el permiso adb WRITE_SECURE_SETTINGS (ver Diagnóstico)."
             WirelessChargeControl.WriteResult.MISMATCH ->
@@ -91,14 +100,19 @@ class ChargeController(private val ctx: Context, private val prefs: Prefs) {
     }
 
     // ----------------------------------------------------------------- DYNAMIC
-    private fun dynamicTick(tempC: Float, offAvailable: Boolean): Result {
+    private fun dynamicTick(
+        tempC: Float,
+        offAvailable: Boolean,
+        setpointEff: Int,
+        safetyEff: Int
+    ): Result {
         val now = System.currentTimeMillis()
         val periodMs = (prefs.periodMin * 60_000L).coerceAtLeast(60_000L)
         val minW = if (offAvailable) 0.0 else SLOW_W
 
         // ---- PI sobre temperatura con slew limit ----
         var base = prefs.basePowerTenths / 10.0
-        val error = prefs.setpoint - tempC // >0 => frío => subir potencia
+        val error = setpointEff - tempC // >0 => frío => subir potencia
         var target = (FAST_W + KP * error).coerceIn(minW, FAST_W)
 
         val dtMin = max((now - prefs.lastControlAt) / 60_000.0, 0.0)
@@ -135,8 +149,8 @@ class ChargeController(private val ctx: Context, private val prefs: Prefs) {
         }
 
         // ---- sobreeseguridad ----
-        if (tempC >= prefs.safetyHigh + 3 && offAvailable) state = "OFF"
-        else if (tempC >= prefs.safetyHigh) state = "SLOW"
+        if (tempC >= safetyEff + 3 && offAvailable) state = "OFF"
+        else if (tempC >= safetyEff) state = "SLOW"
 
         val res = applyDynamicState(state, offAvailable)
 
@@ -146,9 +160,9 @@ class ChargeController(private val ctx: Context, private val prefs: Prefs) {
             else -> "Apagado (pausa)"
         }
         val note = if (offAvailable) {
-            "Dinámico · media ${"%.1f".format(p)} W ($modeLabel)"
+            "Dinámico · media ${"%.1f".format(p)} W · objetivo $setpointEff°C / seg $safetyEff°C ($modeLabel)"
         } else {
-            "Dinámico · media ${"%.1f".format(max(p, SLOW_W))} W ($modeLabel) · sin apagado (sin clave maestra)"
+            "Dinámico · media ${"%.1f".format(max(p, SLOW_W))} W · objetivo $setpointEff°C / seg $safetyEff°C ($modeLabel) · sin apagado"
         } + permissionSuffix(res)
         return Result(modeLabel, note, if (offAvailable) p.toFloat() else max(p, SLOW_W).toFloat(), res == WirelessChargeControl.WriteResult.OK)
     }

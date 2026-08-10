@@ -93,6 +93,14 @@ class ChargeControllerService : Service() {
         val manual = prefs.masterEnabled
         val auto = prefs.autoEnable
 
+        // Muestra de reposo para estimar la temperatura ambiente
+        if (!bs.charging && !bs.wireless && bs.level >= 0) {
+            val c = BatteryReader.currentNow(this)
+            if (c != Int.MIN_VALUE && kotlin.math.abs(c) < 80_000) {
+                AmbientEstimator.onIdleSample(prefs, bs.tempC)
+            }
+        }
+
         if (bs.wireless && auto) {
             if (!prefs.autoActive) prefs.autoActive = true
         } else if (!bs.wireless && prefs.autoActive) {
@@ -116,7 +124,7 @@ class ChargeControllerService : Service() {
         StateHolder.source = sourceLabel(bs)
         StateHolder.mode = result.mode
         StateHolder.avgWatts = result.avgWatts
-        StateHolder.permissionOk = result.permissionOk
+        StateHolder.permissionOk = WirelessChargeControl.hasWriteSecurePermission(this)
         StateHolder.offAvailable = prefs.masterKey.isNotEmpty()
         StateHolder.lastNote = result.note
     }

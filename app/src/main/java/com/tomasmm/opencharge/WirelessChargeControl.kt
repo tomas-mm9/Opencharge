@@ -78,4 +78,14 @@ object WirelessChargeControl {
         val m = android.os.Build.MANUFACTURER?.lowercase() ?: ""
         return m.contains("samsung")
     }
+
+    /** Comprueba si la app tiene realmente concedido WRITE_SECURE_SETTINGS (vía adb). */
+    fun hasWriteSecurePermission(context: Context): Boolean {
+        return try {
+            context.checkSelfPermission(android.Manifest.permission.WRITE_SECURE_SETTINGS) ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED
+        } catch (e: Exception) {
+            false
+        }
+    }
 }
