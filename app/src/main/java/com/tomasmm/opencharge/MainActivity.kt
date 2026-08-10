@@ -18,6 +18,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.snackbar.Snackbar
 
@@ -120,7 +121,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        registerReceiver(statusReceiver, IntentFilter(ServiceUtils.ACTION_STATUS))
+        ContextCompat.registerReceiver(
+            this,
+            statusReceiver,
+            IntentFilter(ServiceUtils.ACTION_STATUS),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
         handler.post(uiRunnable)
     }
 
