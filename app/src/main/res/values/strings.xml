@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OpenCharge</string>
+
+    <string name="title_main">OpenCharge</string>
+    <string name="subtitle_main">Optimización de la carga inalámbrica</string>
+
+    <string name="master_title">Gestión dinámica de carga</string>
+    <string name="master_desc">Ajusta la velocidad de carga inalámbrica según la temperatura para evitar sobrecalentamiento. La carga por cable nunca se ve afectada.</string>
+
+    <string name="auto_title">Autoactivar con carga inalámbrica</string>
+    <string name="auto_desc">Al empezar a cargar de forma inalámbrica, la gestión se activa automáticamente. Al dejar de cargar, se desactiva sola.</string>
+
+    <string name="btn_settings">Ajustes</string>
+    <string name="btn_diagnostico">Diagnóstico</string>
+    <string name="btn_battery">Desactivar optimización de batería</string>
+    <string name="btn_copy">Copiar comando adb</string>
+    <string name="adb_command">adb shell pm grant com.tomasmm.opencharge android.permission.WRITE_SECURE_SETTINGS</string>
+    <string name="adb_copied">Comando adb copiado</string>
+    <string name="adb_hint">Concede el permiso una sola vez desde un PC (Developer Options → USB debugging):</string>
+
+    <string name="status_temp_value">Temperatura: %1$s</string>
+    <string name="status_level_value">Batería: %1$s</string>
+    <string name="status_source_value">Fuente: %1$s</string>
+    <string name="status_current_value">Corriente: %1$s</string>
+    <string name="status_mode_value">Modo: %1$s</string>
+    <string name="status_perm_value">Permiso adb: %1$s</string>
+    <string name="status_note_value">Estado: %1$s</string>
+
+    <string name="perm_ok">OK</string>
+    <string name="perm_missing">FALTA (concede con adb)</string>
+    <string name="note_idle">En espera. Se activará al detectar carga inalámbrica.</string>
+
+    <string name="battery_opt_already_off">La optimización de batería ya está desactivada para esta app.</string>
+
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_high">Temp. alta para bajar a lento (°C)</string>
+    <string name="settings_low">Temp. baja para volver a rápido (°C)</string>
+    <string name="settings_cooldown">Espera antes de volver a rápido (min)</string>
+    <string name="settings_gentle">Modo suave (alternar rápido/lento)</string>
+    <string name="settings_fast">Minutos en rápido (modo suave)</string>
+    <string name="settings_slow">Minutos en lento (modo suave)</string>
+    <string name="btn_save">Guardar</string>
+    <string name="btn_reset">Restablecer</string>
+    <string name="settings_invalid">Valores no válidos. Revisa que alta &gt; baja y todo &gt; 0.</string>
+    <string name="settings_saved">Ajustes guardados</string>
+    <string name="settings_reset">Valores restablecidos</string>
+
+    <string name="diag_title">Diagnóstico</string>
+    <string name="diag_device">Dispositivo</string>
+    <string name="diag_device_value">%1$s</string>
+    <string name="diag_samsung">Fabricante Samsung</string>
+    <string name="diag_samsung_value">%1$s</string>
+    <string name="diag_key">Clave de carga rápida inalámbrica</string>
+    <string name="diag_key_value">%1$s = %2$d (tabla: %3$s)</string>
+    <string name="diag_key_not_found">Clave wireless_fast_charging no encontrada en este One UI.</string>
+    <string name="diag_write1">Probar escribir = 1 (rápido)</string>
+    <string name="diag_write0">Probar escribir = 0 (lento)</string>
+    <string name="diag_test_result">Resultado de la última prueba:</string>
+    <string name="diag_write_ok">Escritura correcta: %1$d</string>
+    <string name="diag_write_noperm">Sin permiso: ejecuta el comando adb e inténtalo de nuevo.</string>
+    <string name="diag_write_mismatch">El valor no se mantiene al releer. Es posible que Samsung exija cambiar el toggle sin estar cargando.</string>
+    <string name="diag_note">Nota: Samsung indica que el toggle de carga rápida inalámbrica no puede cambiarse mientras se está cargando; si es así, el cambio aplica al siguiente ciclo de carga. Esta pantalla sirve para verificarlo en tu One UI 8.5.</string>
+</resources>

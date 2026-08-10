@@ -1,0 +1,65 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Build APK
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Rename APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk Opencharge.apk
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Opencharge-apk
+          path: Opencharge.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish release "latest"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # la API de releases da 503 intermitentes: reintentar con espera
+        run: |
+          for i in 1 2 3; do
+            # subir sobre la release si existe; si no existe, upload falla y probamos create
+            gh release upload latest Opencharge.apk --clobber --repo "$GITHUB_REPOSITORY" && exit 0
+            gh release create latest Opencharge.apk \
+              --title "OpenCharge (última versión)" \
+              --notes "APK de Android listo para instalar. Carga inalámbrica optimizada por temperatura." \
+              --repo "$GITHUB_REPOSITORY" && exit 0
+            # fallback: la API de release individual a veces da 503
+            rid=$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq '.[] | select(.tag_name=="latest") | .id' | head -1)
+            if [ -n "$rid" ]; then
+              aid=$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq '.[] | select(.tag_name=="latest") | .assets[] | select(.name=="Opencharge.apk") | .id' | head -1)
+              if [ -n "$aid" ]; then gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/assets/$aid" || true; fi
+              curl -sf -X POST "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$rid/assets?name=Opencharge.apk" \
+                -H "Authorization: Bearer $GH_TOKEN" \
+                -H "Content-Type: application/vnd.android.package-archive" \
+                --data-binary @Opencharge.apk > /dev/null && exit 0
+            fi
+            echo "Intento $i fallido; reintentando en 45s..."
+            sleep 45
+          done
+          echo "::warning::No se pudo publicar la release (API caída). El APK queda como artifact del run."
+          exit 0
