@@ -76,4 +76,13 @@
     <string name="diag_master_ok">Reinicio ejecutado correctamente</string>
     <string name="diag_master_fail">Sin permiso o el valor no se mantiene.</string>
     <string name="diag_note">Nota 1: Samsung indica que el toggle de carga rápida inalámbrica no puede cambiarse mientras se está cargando; el diagnóstico verifica si en tu One UI 8.5 sí aplica en caliente. Nota 2: el aviso \"Wireless charging stopped due to lack of space\" es del sistema Samsung (no de OpenCharge): suele aparecer por protección térmica al superar ~42 °C o por mal acoplamiento (funda gruesa o mala alineación). Evita llegar a 42 °C y recoloca el móvil.</string>
+
+    <string name="diag_dumpsys_title">Monitorización con dumpsys (por adb)</string>
+    <string name="diag_dumpsys_body">La app sin root no puede ejecutar dumpsys; usa estos comandos desde el PC para ver temperatura, corriente y acoplamiento en vivo:</string>
+    <string name="diag_cmd_battery">adb shell dumpsys battery</string>
+    <string name="diag_cmd_battery_desc">Busca \'temperature\' (décimas de °C), \'level\' y \'current now\' (µA). En Samsung sale también la entrada del cargador inalámbrico.</string>
+    <string name="diag_cmd_power">adb shell dumpsys power | grep -i -E \'wireless|charging|temperature\'</string>
+    <string name="diag_cmd_power_desc">Filtra el estado del sistema de energía y los avisos de la carga inalámbrica.</string>
+    <string name="diag_cmd_sysfs">adb shell cat /sys/class/power_supply/wireless/present 2>/dev/null; adb shell cat /sys/class/power_supply/battery/current_now 2>/dev/null</string>
+    <string name="diag_cmd_sysfs_desc">Verifica si el sysfs expone la bobina (present=1 con acoplamiento) y la corriente real en µA. Si current_now ronda ±500000 (0,5 A) con carga activa, hay acoplamiento débil o el móvil ya redujo la potencia.</string>
 </resources>

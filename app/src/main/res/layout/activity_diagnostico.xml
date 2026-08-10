@@ -86,6 +86,74 @@
             android:text="@string/diag_master_test" />
 
         <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/diag_dumpsys_title"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/diag_dumpsys_body"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="#22000000"
+            android:fontFamily="monospace"
+            android:padding="8dp"
+            android:text="@string/diag_cmd_battery"
+            android:textIsSelectable="true"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/diag_cmd_battery_desc"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="#22000000"
+            android:fontFamily="monospace"
+            android:padding="8dp"
+            android:text="@string/diag_cmd_power"
+            android:textIsSelectable="true"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/diag_cmd_power_desc"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="#22000000"
+            android:fontFamily="monospace"
+            android:padding="8dp"
+            android:text="@string/diag_cmd_sysfs"
+            android:textIsSelectable="true"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/diag_cmd_sysfs_desc"
+            android:textSize="12sp" />
+
+        <TextView
             android:id="@+id/txt_test_result"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
