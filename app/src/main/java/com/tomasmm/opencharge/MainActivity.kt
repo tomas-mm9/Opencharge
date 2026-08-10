@@ -70,6 +70,8 @@ class MainActivity : AppCompatActivity() {
         txtPerm = findViewById(R.id.txt_perm)
         txtNote = findViewById(R.id.txt_note)
 
+        ServiceUtils.applyStatusBarInsetPadding(findViewById(R.id.container_main))
+
         swMaster.isChecked = prefs.masterEnabled
         swAuto.isChecked = prefs.autoEnable
 

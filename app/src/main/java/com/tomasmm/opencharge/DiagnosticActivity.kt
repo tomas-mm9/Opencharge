@@ -18,6 +18,8 @@ class DiagnosticActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_diagnostico)
 
+        ServiceUtils.applyStatusBarInsetPadding(findViewById(R.id.container_diag))
+
         findViewById<TextView>(R.id.txt_device).text = getString(
             R.string.diag_device_value,
             "${Build.MANUFACTURER} ${Build.MODEL} · Android ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})"

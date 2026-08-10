@@ -16,6 +16,8 @@ class SettingsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_settings)
         prefs = Prefs(this)
 
+        ServiceUtils.applyStatusBarInsetPadding(findViewById(R.id.container_settings))
+
         val swDynamic = findViewById<MaterialSwitch>(R.id.sw_dynamic)
         val edPeriod = findViewById<EditText>(R.id.ed_period)
         val swRestart = findViewById<MaterialSwitch>(R.id.sw_restart)

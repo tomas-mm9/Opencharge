@@ -221,4 +221,6 @@ class ChargeController(private val ctx: Context, private val prefs: Prefs) {
         prefs.lastModeChangeAt = at
         Log.d(TAG, "Modo → $mode ($reason)")
     }
+
+    private fun Float.round(): Int = kotlin.math.roundToInt()
 }
