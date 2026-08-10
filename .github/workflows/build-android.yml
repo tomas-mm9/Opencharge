@@ -68,10 +68,8 @@ jobs:
         # una release por run: tag v<run_number> (único y creciente)
         run: |
           TAG="v${{ github.run_number }}"
-          NOTES="APK ${GITHUB_SHA::7} · ${GITHUB_SHA}
-Compilado automáticamente desde main.
-
-Carga inalámbrica optimizada por temperatura. Descarga Opencharge.apk para instalar."
+          SHORT="${GITHUB_SHA:0:7}"
+          NOTES="APK $SHORT ($GITHUB_SHA) - compilado automaticamente desde main. Descarga Opencharge.apk para instalar."
           if gh release create "$TAG" Opencharge.apk \
               --title "OpenCharge $TAG" \
               --notes "$NOTES" \
