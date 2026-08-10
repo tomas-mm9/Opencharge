@@ -39,16 +39,14 @@ jobs:
       - name: Publish release "latest"
         env:
           GH_TOKEN: ${{ github.token }}
-        # la API de releases da 503 intermitentes: reintentar con espera
+        # reutiliza una única release con tag "latest": siempre el APK más reciente
         run: |
           for i in 1 2 3; do
-            # subir sobre la release si existe; si no existe, upload falla y probamos create
             gh release upload latest Opencharge.apk --clobber --repo "$GITHUB_REPOSITORY" && exit 0
             gh release create latest Opencharge.apk \
               --title "OpenCharge (última versión)" \
               --notes "APK de Android listo para instalar. Carga inalámbrica optimizada por temperatura." \
               --repo "$GITHUB_REPOSITORY" && exit 0
-            # fallback: la API de release individual a veces da 503
             rid=$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq '.[] | select(.tag_name=="latest") | .id' | head -1)
             if [ -n "$rid" ]; then
               aid=$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq '.[] | select(.tag_name=="latest") | .assets[] | select(.name=="Opencharge.apk") | .id' | head -1)
@@ -61,5 +59,25 @@ jobs:
             echo "Intento $i fallido; reintentando en 45s..."
             sleep 45
           done
-          echo "::warning::No se pudo publicar la release (API caída). El APK queda como artifact del run."
+          echo "::warning::No se pudo publicar la release latest (API caída). El APK queda como artifact del run."
           exit 0
+
+      - name: Publish release versionada
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # una release por run: tag v<run_number> (único y creciente)
+        run: |
+          TAG="v${{ github.run_number }}"
+          NOTES="APK ${GITHUB_SHA::7} · ${GITHUB_SHA}
+Compilado automáticamente desde main.
+
+Carga inalámbrica optimizada por temperatura. Descarga Opencharge.apk para instalar."
+          if gh release create "$TAG" Opencharge.apk \
+              --title "OpenCharge $TAG" \
+              --notes "$NOTES" \
+              --repo "$GITHUB_REPOSITORY"; then
+            echo "Release $TAG publicada"
+          else
+            echo "::warning::La release $TAG ya existía o falló; el APK queda en latest/artifacts."
+            exit 0
+          fi
